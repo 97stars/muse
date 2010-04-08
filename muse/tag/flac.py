@@ -3,7 +3,7 @@ import subprocess
 
 from struct import pack, unpack
 
-class FLAC(object):
+class FLAC(dict):
 
     def __init__(self, filename):
         self.file = filename
@@ -38,4 +38,7 @@ class FLAC(object):
                     self.__add_comment(c_data.decode("utf-8"))
 
     def __add_comment(self, string):
-        print string.encode("ascii", "ignore")
+        if "=" not in string:
+            raise ValueError("%s doesn't appear to be a comment" %
+                             string.encode("ascii", "ignore"))
+        self[string[:string.find("=")]] = string[string.find("=") + 1:]
