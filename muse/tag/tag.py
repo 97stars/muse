@@ -57,6 +57,12 @@ class AgnosticTags(dict):
                     i.add_text_frame("TRCK", self[key])
             elif key == "Year":
                 i.add_text_frame("TYER", self[key])
+            elif key == "AlbumArtist":
+                i.add_text_frame("TPE2", self[key])
+            elif key == "ArtistSort":
+                i.add_text_frame("XSOP", self[key])
+            elif key == "AlbumArtistSort":
+                i.add_custom_text("ALBUMARTISTSORT", self[key])
         i.save()
 
 

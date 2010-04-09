@@ -28,12 +28,22 @@ class ID3(dict):
     def add_text_frame(self, ident, text):
         self[ident] = unicode(text)
 
+    def add_custom_text(self, desc, text):
+        self["TXXX"] = {"DESC": desc, "TEXT": text}
+
     def __pack_frames(self):
         framedata = ""
         for frame_id in self:
-            text = self[frame_id].encode("UTF-16")
-            frametext = pack("<B", 1) # encoding
-            frametext += pack("<%ds" % len(text), text)
+            if frame_id == "TXXX":
+                desc = self[frame_id]["DESC"].encode("UTF-16")
+                text = self[frame_id]["TEXT"].encode("UTF-16")
+                frametext = pack("<B", 1) # encoding
+                frametext += pack("<%dsxx%ds" % (len(desc), len(text)),
+                                  desc, text)
+            else:
+                text = self[frame_id].encode("UTF-16")
+                frametext = pack("<B", 1) # encoding
+                frametext += pack("<%ds" % len(text), text)
             # start of header
             framedata += pack("<4s", frame_id)
             framedata += _pack_id3_size(len(frametext))
