@@ -24,7 +24,9 @@ class Muse:
                 targetfile = unicode(os.path.join(targetdir,
                                                   _sanitize(artist),
                                                   _sanitize(tags["Album"]),
-                                                  _sanitize(tags["Title"] + self.target)))
+                                                  _sanitize("%02d %s" % (int(tags["Track"]),
+                                                                        tags["Title"]) +
+                                                            self.target)))
                 _makepath(targetfile)
                 convert(f, targetfile)
                 tags.save(targetfile)
