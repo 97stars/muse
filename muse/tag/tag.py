@@ -17,7 +17,8 @@ class AgnosticTags(dict):
         if extension == ".flac":
             self.__load_flac()
         else:
-            raise UnsupportedFileType("reading tags from %s files is not supported")
+            raise UnsupportedFileType("reading tags from %s files is not supported" %
+                                      self.file)
 
     def save(self, filename=None):
         if filename: self.file = filename
@@ -25,7 +26,8 @@ class AgnosticTags(dict):
         if extension == ".mp3":
             self.__save_id3()
         else:
-            raise UnsupportedFileType("saving tags to %s files is no supported")
+            raise UnsupportedFileType("saving tags to %s files is not supported" %
+                                      self.file)
 
     def minify(self):
         for key in self.keys():

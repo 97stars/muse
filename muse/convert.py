@@ -18,16 +18,16 @@ def convert(source, target):
     if t_extension not in SUPPORTED_TARGETS:
         raise UnsupportedTarget("%s is an unsupported target" % t_extension)
 
-    inpipe = __decode(source)
+    inpipe = _decode(source)
     if t_extension == ".wav":
         with open(target) as out:
             out.write(inpipe.read())
     elif t_extension == ".flac":
-        __flac(inpipe, target)
+        _flac(inpipe, target)
     elif t_extension == ".mp3":
-        __mp3(inpipe, target)
+        _mp3(inpipe, target)
 
-def __decode(filename):
+def _decode(filename):
     (_, extension) = os.path.splitext(filename)
     print "decoding %s..." % filename.encode("ascii", "ignore")
     with open(filename, "rb") as f:
@@ -40,7 +40,7 @@ def __decode(filename):
         else:
             return f
 
-def __flac(inpipe, filename):
+def _flac(inpipe, filename):
     print "encoding %s..." % filename.encode("ascii", "ignore")
     with open(filename, "wb") as out:
         p = subprocess.Popen(["flac", "--best", "--stdout", "-"],
@@ -50,7 +50,7 @@ def __flac(inpipe, filename):
         p.communicate()
     print "done!"
 
-def __mp3(inpipe, filename):
+def _mp3(inpipe, filename):
     print "encoding %s..." % filename.encode("ascii", "ignore")
     (tempfh, tempname) = tempfile.mkstemp()
     os.close(tempfh)
