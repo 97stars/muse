@@ -7,8 +7,7 @@ def main():
     # m.go(u"C:\\Users\\Tom\\Music\\testing\\t3")
     t = AgnosticTags(u"C:\\Users\\Tom\\Music\\testing\\t1\\08.flac")
     t.load()
-    for key in t:
-        print "%s: %s" % (key.encode("ascii", "ignore"), t[key].encode("ascii", "ignore"))
+    t.save(u"C:\\Users\\Tom\\Music\\testing\\t1\\08.mp3")
 
 if __name__ == '__main__':
     main()
