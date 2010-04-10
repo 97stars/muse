@@ -44,6 +44,6 @@ def _makepath(f):
         os.makedirs(os.path.dirname(f))
 
 def _sanitize(f):
-    s = re.sub("\.$", f)
-    s = re.sub("^\.", s)
+    s = re.sub("\.$", "_", f)
+    s = re.sub("^\.", "_", s)
     return re.sub(BAD_CHARS, "_", s)
