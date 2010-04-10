@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 from flac import FLAC
 from id3 import ID3
@@ -23,11 +24,18 @@ class AgnosticTags(dict):
     def save(self, filename=None):
         if filename: self.file = filename
         (_, extension) = os.path.splitext(self.file)
-        if extension == ".mp3":
-            self.__save_id3()
-        else:
-            raise UnsupportedFileType("saving tags to %s files is not supported" %
-                                      self.file)
+        for _ in xrange(5):
+            # sometimes shit just doesn't work, so lets try a few times...
+            try:
+                if extension == ".mp3":
+                    self.__save_id3()
+                else:
+                    raise UnsupportedFileType("saving tags to %s files is not supported" %
+                                              self.file)
+                break
+            except IOError:
+                print "Warning: IOError occured"
+                time.sleep(1)
 
     def minify(self):
         for key in self.keys():
