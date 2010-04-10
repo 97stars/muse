@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 
 SUPPORTED_TARGETS = [".wav", ".flac", ".mp3"]
 SUPPORTED_SOURCES = [".wav", ".flac"]
@@ -26,6 +27,7 @@ def convert(source, target):
         _flac(inpipe, target)
     elif t_extension == ".mp3":
         _mp3(inpipe, target)
+    time.sleep(1) # this fixed permission issues on windows
 
 def _decode(filename):
     (_, extension) = os.path.splitext(filename)
