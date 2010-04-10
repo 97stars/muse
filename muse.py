@@ -31,9 +31,9 @@ def main():
     options = parseopts()
     m = Muse(options.input, options.type)
     if options.output:
-        m.go(options.dir, options.output)
+        m.go(unicode(options.dir), unicode(options.output))
     else:
-        m.go(options.dir)
+        m.go(unicode(options.dir))
 
 if __name__ == '__main__':
     main()
