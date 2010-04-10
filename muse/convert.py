@@ -27,7 +27,6 @@ def convert(source, target):
         _flac(inpipe, target)
     elif t_extension == ".mp3":
         _mp3(inpipe, target)
-    time.sleep(1) # this fixed permission issues on windows
 
 def _decode(filename):
     (_, extension) = os.path.splitext(filename)
@@ -50,6 +49,7 @@ def _flac(inpipe, filename):
                              stdout=out,
                              stderr=subprocess.PIPE)
         p.communicate()
+        _sync(out)
     print "done!"
 
 def _mp3(inpipe, filename):
@@ -65,5 +65,10 @@ def _mp3(inpipe, filename):
     with open(filename, "wb") as out:
         with open(tempname, "rb") as temp:
             out.write(temp.read())
+        _sync(out)
     os.remove(tempname)
     print "done!"
+
+def _sync(f):
+    f.flush()
+    os.fsync(f.fileno())
