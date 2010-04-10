@@ -31,7 +31,7 @@ def convert(source, target):
 
 def _decode(filename):
     (_, extension) = os.path.splitext(filename)
-    print "decoding %s..." % filename.encode("ascii", "ignore")
+    print "decoding %s..." % filename.encode("ascii", "replace")
     with open(filename, "rb") as f:
         if extension == ".flac":
             p = subprocess.Popen(["flac", "-d", "--stdout", "-"],
@@ -43,7 +43,7 @@ def _decode(filename):
             return f
 
 def _flac(inpipe, filename):
-    print "encoding %s..." % filename.encode("ascii", "ignore")
+    print "encoding %s..." % filename.encode("ascii", "replace")
     with open(filename, "wb") as out:
         p = subprocess.Popen(["flac", "--best", "--stdout", "-"],
                              stdin=inpipe,
@@ -53,7 +53,7 @@ def _flac(inpipe, filename):
     print "done!"
 
 def _mp3(inpipe, filename):
-    print "encoding %s..." % filename.encode("ascii", "ignore")
+    print "encoding %s..." % filename.encode("ascii", "replace")
     (tempfh, tempname) = tempfile.mkstemp()
     os.close(tempfh)
     p = subprocess.Popen(["lame", "-V0", "--replaygain-accurate", "-", tempname],
@@ -61,7 +61,7 @@ def _mp3(inpipe, filename):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     p.communicate()
-    print "saving   %s..." % filename.encode("ascii", "ignore")
+    print "saving   %s..." % filename.encode("ascii", "replace")
     with open(filename, "wb") as out:
         with open(tempname, "rb") as temp:
             out.write(temp.read())
