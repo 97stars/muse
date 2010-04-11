@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 import tempfile
-import time
 
 SUPPORTED_TARGETS = [".wav", ".flac", ".mp3"]
 SUPPORTED_SOURCES = [".wav", ".flac"]
@@ -21,7 +20,7 @@ def convert(source, target):
 
     inpipe = _decode(source)
     if t_extension == ".wav":
-        with open(target) as out:
+        with open(target, "wb") as out:
             out.write(inpipe.read())
     elif t_extension == ".flac":
         _flac(inpipe, target)
