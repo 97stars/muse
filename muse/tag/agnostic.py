@@ -7,6 +7,53 @@ import id3
 
 class UnsupportedFileType(Exception): pass
 
+def load(filename):
+    _, extension = os.path.splitext(filename)
+    if extension == ".flac":
+        return _load_flac(filename)
+    else:
+        raise UnsupportedFileType("reading tags from %s files is not supported" %
+                                  extension)
+
+def save(tags, filename):
+    _, extension = os.path.splitext(filename)
+    for _ in xrange(5):
+        # retry a few times, it seems that something in convert.py is not
+        # releasing filehandles right away causing access denied errors
+        try:
+            if extension == ".mp3":
+                _save_id3(tags, filename)
+            else:
+                raise UnsupportedFileType("saving tags to %s files is not supported" %
+                                          extension)
+            break
+        except IOError:
+            print "Warning: IOError. Retrying up to 5 times"
+            time.sleep(1)
+
+def minify(tags):
+    pass
+
+########################################
+## loading
+########################################
+
+def _load_flac(filename):
+    with open(filename, "rb") as f:
+        pass
+
+########################################
+## saving
+########################################
+
+def _save_id3(filename):
+    pass
+
+########################################
+## mapping data
+########################################
+
+
 class AgnosticTags(dict):
 
     def __init__(self, filename):
