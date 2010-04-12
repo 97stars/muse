@@ -39,7 +39,7 @@ def _pack_frames(framelist):
             desc = frame["DESC"].encode(ENCODINGS[frame["ENCODING"]])
             text = frame["TEXT"].encode(ENCODINGS[frame["ENCODING"]])
             frametext = pack(">B", frame["ENCODING"])
-            frametext += pack(">%dsxx%ds" % (len(desc), len(test)),
+            frametext += pack(">%dsxx%ds" % (len(desc), len(text)),
                               desc, text)
         elif frame["ID"][0] == "T":
             text = frame["TEXT"].encode(ENCODINGS[frame["ENCODING"]])
@@ -154,7 +154,10 @@ def TSRC(): _unsupported()
 def TSSE(): _unsupported()
 def TYER(text):
     return _numeric_text("TYER", text)
-def TXXX(desc, text): _unsupported()
+def TXXX(desc, text):
+    frame = _generic_text("TXXX", text)
+    frame["DESC"] = desc
+    return frame
 def UFID(): _unsupported()
 def USER(): _unsupported()
 def USLT(): _unsupported()
