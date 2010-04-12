@@ -17,6 +17,8 @@ class AgnosticTags(dict):
         (_, extension) = os.path.splitext(self.file)
         if extension == ".flac":
             self.__load_flac()
+        if extension == ".wav":
+            self.__load_filename()
         else:
             raise UnsupportedFileType("reading tags from %s files is not supported" %
                                       self.file)
@@ -96,3 +98,23 @@ class AgnosticTags(dict):
             elif k == "albumartistsort":
                 self["AlbumArtistSort"] = v
         self.minify()
+
+    def __load_filename(self):
+        (directory, filename) = os.path.split(self.file)
+        if directory[-1] == os.sep: directory = directory[:-1]
+        (directory, album) = os.path.split(directory)
+        if directory[-1] == os.sep: directory = directory[:-1]
+        (_, self["Artist"]) = os.path.split(directory)
+        mdata = re.match(r"(?P<track>\d+)( - )?(?P<title>.+)\.[^.]+", filename)
+        if mdata:
+            self["Title"] = mdata.group("title")
+            self["Track"] = mdata.group("track")
+        else:
+            self["Title"] = filename
+            self["Track"] = "0"
+        mdata = re.match(r"(\(\d+\)).(.+)", album)
+        if mdata:
+            self["Album"] = mdata.group(2)
+            self["Year"] = mdata.group(1)
+        else:
+            self["Album"] = album
