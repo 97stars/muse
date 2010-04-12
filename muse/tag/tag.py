@@ -2,8 +2,8 @@ import os
 import re
 import time
 
+import id3
 from flac import FLAC
-from id3 import ID3
 
 class UnsupportedFileType(Exception): pass
 
@@ -50,28 +50,28 @@ class AgnosticTags(dict):
                 del(self[key])
 
     def __save_id3(self):
-        i = ID3(self.file)
+        frames = []
         for key in self:
             if key == "Title":
-                i.add_text_frame("TIT2", self[key])
+                frames.append(id3.TIT2(self[key]))
             elif key == "Album":
-                i.add_text_frame("TALB", self[key])
+                frames.append(id3.TALB(self[key]))
             elif key == "Artist":
-                i.add_text_frame("TPE1", self[key])
+                frames.append(id3.TPE1(self[key]))
             elif key == "Track":
                 if "TrackTotal" in self:
-                    i.add_text_frame("TRCK", "%s/%s" % (self[key], self["TrackTotal"]))
+                    frames.append(id3.TRCK("%s/%s" % (self[key], self["TrackTotal"])))
                 else:
-                    i.add_text_frame("TRCK", self[key])
+                    frames.append(id3.TRCK(self[key]))
             elif key == "Year":
-                i.add_text_frame("TYER", self[key])
+                frames.append(id3.TYER(self[key]))
             elif key == "AlbumArtist":
-                i.add_text_frame("TPE2", self[key])
+                frames.append(id3.TPE2(self[key]))
             elif key == "ArtistSort":
-                i.add_text_frame("XSOP", self[key])
+                raise id3.ID3FrameUnsupported("ArtistSort")
             elif key == "AlbumArtistSort":
-                i.add_custom_text("ALBUMARTISTSORT", self[key])
-        i.save()
+                frames.append(id3.TXXX("ALBUMARTISTSORT", self[key]))
+        id3.save(frames, self.file)
 
 
     def __load_flac(self):
