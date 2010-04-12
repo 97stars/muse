@@ -12,6 +12,8 @@ OPTION_LIST = [
                 type="string", dest="output", metavar="DIR"),
     make_option("-i", "--input", action="store",
                 type="string", dest="input", metavar="GLOB"),
+    make_option("-n", "--no-tags", action="store_true",
+                dest="notags", default=False)
 ]
 
 def parseopts():
@@ -28,7 +30,7 @@ def main():
     o = ".%s" % options.output # turn output into an extension
     m = Muse(i, o)
     if len(args) == 2:
-        m.go(unicode(args[0]), unicode(args[1]))
+        m.go(unicode(args[0]), unicode(args[1]), not options.notags)
     elif len(args) == 0:
         m.go(u".")
     else:
