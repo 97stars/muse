@@ -26,19 +26,20 @@ def convert(source, target):
         _flac(inpipe, target)
     elif t_extension == ".mp3":
         _mp3(inpipe, target)
+    inpipe.close()
 
 def _decode(filename):
     (_, extension) = os.path.splitext(filename)
     print "decoding %s..." % filename.encode("ascii", "replace")
-    with open(filename, "rb") as f:
-        if extension == ".flac":
-            p = subprocess.Popen(["flac", "-d", "--stdout", "-"],
-                                 stdin=f,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            return p.stdout
-        else:
-            return f
+    f = open(filename, "rb")
+    if extension == ".flac":
+        p = subprocess.Popen(["flac", "-d", "--stdout", "-"],
+                             stdin=f,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        return p.stdout
+    else:
+        return f
 
 def _flac(inpipe, filename):
     print "encoding %s..." % filename.encode("ascii", "replace")
