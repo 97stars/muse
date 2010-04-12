@@ -24,8 +24,8 @@ def parseopts():
 
 def main():
     options, args = parseopts()
-    i = "*.%s" % options.input
-    o = ".%s" % options.output
+    i = "*.%s" % options.input # turn input into a glob
+    o = ".%s" % options.output # turn output into an extension
     m = Muse(i, o)
     if len(args) == 2:
         m.go(unicode(args[0]), unicode(args[1]))

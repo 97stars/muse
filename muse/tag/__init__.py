@@ -1,1 +1,1 @@
-from tag import AgnosticTags
+from agnostic import AgnosticTags
