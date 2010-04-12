@@ -3,42 +3,37 @@ import subprocess
 
 from struct import pack, unpack
 
-class FLAC(dict):
+def load(filename):
+    with open(filename, "rb") as f:
+        if not _is_flac(f):
+            raise ValueError("%s is not a flac file" %
+                             filename.encode("ascii", "replace"))
+        cont = True
+        while cont:
+            header = unpack(">I", f.read(4))[0]
+            if header >> 31 == 1: cont = False # last metadata block
+            length = header & 0xFFFFFF
+            if (header >> 24) & 0x7F != 4:
+                # not a comment block
+                f.seek(length, os.SEEK_CUR)
+                continue
+            # ^ BIG ENDIAN
+            # the FLAC format is all big endian, but vorbis comments
+            # are little endian.
+            # v LITTLE ENDIAN
+            v_length = unpack("<I", f.read(4))[0]
+            v_string = unpack("%ds" % v_length, f.read(v_length))[0]
+            num_comments = unpack("<I", f.read(4))[0]
+            for _ in xrange(num_comments):
+                c_length = unpack("<I", f.read(4))[0]
+                c_data = unpack("%ds" % c_length, f.read(c_length))[0]
+                yield _parse_comment(c_data.decode("utf-8"))
 
-    def __init__(self, filename):
-        self.file = filename
+def _is_flac(fh):
+    return unpack("4s", fh.read(4))[0] == "fLaC"
 
-    def load(self, filename=None):
-        if filename: self.file = filename
-        with open(self.file, "rb") as f:
-            stream_marker = unpack("4s", f.read(4))[0]
-            if stream_marker != "fLaC":
-                raise ValueError("%s is not a flac file" %
-                                 self.file.encode("ascii", "ignore"))
-            cont = True
-            while(cont):
-                header = unpack(">I", f.read(4))[0]
-                # stop if this is the last block
-                if header >> 31 == 1: cont = False
-                length = header & 0xFFFFFF
-                # if this isn't a comment block, we don't care
-                if (header >> 24) & 0x7F != 4:
-                    f.seek(length, os.SEEK_CUR)
-                    continue
-                # ^ BIG ENDIAN
-                # flac files use big endian, but vorbis comments are all
-                # little endian.. yeah..
-                # v LITTLE ENDIAN
-                v_length = unpack("<I", f.read(4))[0]
-                v_string = unpack("%ds" % v_length, f.read(v_length))[0]
-                num_comments = unpack("<I", f.read(4))[0]
-                for i in xrange(num_comments):
-                    c_length = unpack("<I", f.read(4))[0]
-                    c_data = unpack("%ds" % c_length, f.read(c_length))[0]
-                    self.__add_comment(c_data.decode("utf-8"))
-
-    def __add_comment(self, string):
-        if "=" not in string:
-            raise ValueError("%s doesn't appear to be a comment" %
-                             string.encode("ascii", "ignore"))
-        self[string[:string.find("=")]] = string[string.find("=") + 1:]
+def _parse_comment(string):
+    if "=" not in string:
+        raise ValueError("%s doesn't appear to be a comment" %
+                         string.encode("ascii", "replace"))
+    return tuple(string.split("=", 1))

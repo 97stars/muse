@@ -2,8 +2,8 @@ import os
 import re
 import time
 
+import flac
 import id3
-from flac import FLAC
 
 class UnsupportedFileType(Exception): pass
 
@@ -75,26 +75,24 @@ class AgnosticTags(dict):
 
 
     def __load_flac(self):
-        f = FLAC(self.file)
-        f.load()
-        for k in f:
+        for k, v in flac.load(self.file):
             if k == "title":
-                self["Title"] = f[k]
+                self["Title"] = v
             elif k == "album":
-                self["Album"] = f[k]
+                self["Album"] = v
             elif k == "artist":
-                self["Artist"] = f[k]
+                self["Artist"] = v
             elif k == "totaltracks" or k == "tracktotal":
-                self["TrackTotal"] = f[k]
+                self["TrackTotal"] = v
             elif k == "tracknumber":
-                self["Track"] = f[k]
+                self["Track"] = v
             elif k == "date":
-                mdata = re.search(r"(\d\d\d\d)", f[k])
+                mdata = re.search(r"(\d\d\d\d)", v)
                 self["Year"] = mdata.group(1)
             elif k == "artistsort":
-                self["ArtistSort"] = f[k]
+                self["ArtistSort"] = v
             elif k == "albumartist":
-                self["AlbumArtist"] = f[k]
+                self["AlbumArtist"] = v
             elif k == "albumartistsort":
-                self["AlbumArtistSort"] = f[k]
+                self["AlbumArtistSort"] = v
         self.minify()
