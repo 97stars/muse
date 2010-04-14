@@ -3,7 +3,7 @@ import re
 from fnmatch import fnmatch
 
 from convert import convert
-from tag import AgnosticTags
+from tag import agnostic
 
 BAD_CHARS = r"[\/:*?\"<>|]"
 
@@ -17,8 +17,7 @@ class Muse:
         for f in self.walk(directory, lambda f: fnmatch(f, self.match)):
             (root, _) = os.path.splitext(f)
             if targetdir:
-                tags = AgnosticTags(f)
-                tags.load()
+                tags = agnostic.load(f)
                 if "AlbumArtist" in tags: artist = tags["AlbumArtist"]
                 else: artist = tags["Artist"]
                 targetfile = unicode(os.path.join(targetdir,
@@ -29,7 +28,7 @@ class Muse:
                                                             self.target)))
                 _makepath(targetfile)
                 convert(f, targetfile)
-                tags.save(targetfile)
+                agnostic.save(tags, targetfile)
                                           
             else:
                 convert(f, root + self.target)
