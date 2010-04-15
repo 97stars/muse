@@ -6,8 +6,14 @@ import tempfile
 SUPPORTED_TARGETS = [".wav", ".flac", ".mp3"]
 SUPPORTED_SOURCES = [".wav", ".flac"]
 
-class UnsupportedTarget(Exception): pass
-class UnsupportedSource(Exception): pass
+
+class UnsupportedTarget(Exception):
+    pass
+
+
+class UnsupportedSource(Exception):
+    pass
+
 
 def convert(source, target):
     # make sure everything is supported
@@ -28,6 +34,7 @@ def convert(source, target):
         _mp3(inpipe, target)
     inpipe.close()
 
+
 def _decode(filename):
     (_, extension) = os.path.splitext(filename)
     print "decoding %s..." % filename.encode("ascii", "replace")
@@ -41,6 +48,7 @@ def _decode(filename):
     else:
         return f
 
+
 def _flac(inpipe, filename):
     print "encoding %s..." % filename.encode("ascii", "replace")
     with open(filename, "wb") as out:
@@ -52,11 +60,13 @@ def _flac(inpipe, filename):
         _sync(out)
     print "done!"
 
+
 def _mp3(inpipe, filename):
     print "encoding %s..." % filename.encode("ascii", "replace")
     (tempfh, tempname) = tempfile.mkstemp()
     os.close(tempfh)
-    p = subprocess.Popen(["lame", "-V0", "--replaygain-accurate", "-", tempname],
+    p = subprocess.Popen(["lame", "-V0", "--replaygain-accurate", "-",
+                          tempname],
                          stdin=inpipe,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
@@ -68,6 +78,7 @@ def _mp3(inpipe, filename):
         _sync(out)
     os.remove(tempname)
     print "done!"
+
 
 def _sync(f):
     f.flush()

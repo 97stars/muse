@@ -5,7 +5,10 @@ import time
 import flac
 import id3
 
-class UnsupportedFileType(Exception): pass
+
+class UnsupportedFileType(Exception):
+    pass
+
 
 def load(filename):
     _, extension = os.path.splitext(filename)
@@ -14,8 +17,9 @@ def load(filename):
     if extension == ".wav":
         return __load_filename(filename)
     else:
-        raise UnsupportedFileType("reading tags from %s files is not supported" %
-                                  extension)
+        raise UnsupportedFileType(
+            "reading tags from %s files is not supported" % extension)
+
 
 def save(tags, filename):
     _, extension = os.path.splitext(filename)
@@ -26,12 +30,13 @@ def save(tags, filename):
             if extension == ".mp3":
                 _save_id3(tags, filename)
             else:
-                raise UnsupportedFileType("saving tags to %s files is not supported" %
-                                          extension)
+                raise UnsupportedFileType(
+                    "saving tags to %s files is not supported" % extension)
             break
         except IOError:
             print "Warning: IOError. Retrying up to 5 times"
             time.sleep(1)
+
 
 def minify(tags):
     for key in tags.keys():
@@ -46,9 +51,11 @@ def minify(tags):
             del(tags[key])
     return tags
 
+
 ########################################
 ## loading
 ########################################
+
 
 def _load_flac(filename):
     tags = {}
@@ -74,12 +81,15 @@ def _load_flac(filename):
             tags["AlbumArtistSort"] = v
     return minify(tags)
 
+
 def __load_filename(filename):
     tags = {}
     (directory, fname) = os.path.split(filename)
-    if directory[-1] == os.sep: directory = directory[:-1]
+    if directory[-1] == os.sep:
+        directory = directory[:-1]
     (directory, album) = os.path.split(directory)
-    if directory[-1] == os.sep: directory = directory[:-1]
+    if directory[-1] == os.sep:
+        directory = directory[:-1]
     (_, tags["Artist"]) = os.path.split(directory)
     mdata = re.match(r"(?P<track>\d+)( - )?(?P<title>.+)\.[^.]+", fname)
     if mdata:
@@ -96,9 +106,11 @@ def __load_filename(filename):
         tags["Album"] = album.strip()
     return tags
 
+
 ########################################
 ## saving
 ########################################
+
 
 def _save_id3(tags, filename):
     frames = []
@@ -111,7 +123,8 @@ def _save_id3(tags, filename):
             frames.append(id3.TPE1(tags[key]))
         elif key == "Track":
             if "TrackTotal" in tags:
-                frames.append(id3.TRCK("%s/%s" % (tags[key], tags["TrackTotal"])))
+                frames.append(
+                    id3.TRCK("%s/%s" % (tags[key], tags["TrackTotal"])))
             else:
                 frames.append(id3.TRCK(tags[key]))
         elif key == "Year":

@@ -3,6 +3,7 @@ import subprocess
 
 from struct import pack, unpack
 
+
 def load(filename):
     with open(filename, "rb") as f:
         if not _is_flac(f):
@@ -11,7 +12,8 @@ def load(filename):
         cont = True
         while cont:
             header = unpack(">I", f.read(4))[0]
-            if header >> 31 == 1: cont = False # last metadata block
+            if header >> 31 == 1:
+                cont = False  # last metadata block
             length = header & 0xFFFFFF
             if (header >> 24) & 0x7F != 4:
                 # not a comment block
@@ -29,8 +31,10 @@ def load(filename):
                 c_data = unpack("%ds" % c_length, f.read(c_length))[0]
                 yield _parse_comment(c_data.decode("utf-8"))
 
+
 def _is_flac(fh):
     return unpack("4s", fh.read(4))[0] == "fLaC"
+
 
 def _parse_comment(string):
     if "=" not in string:
