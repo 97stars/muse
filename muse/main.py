@@ -13,7 +13,7 @@ class Muse:
         self.match = match
         self.target = target
 
-    def go(self, directory, targetdir=None):
+    def go(self, directory, targetdir=None, copy_tags=False):
         for f in self.walk(directory, lambda f: fnmatch(f, self.match)):
             (root, _) = os.path.splitext(f)
             if targetdir:
@@ -28,8 +28,7 @@ class Muse:
                                                             self.target)))
                 _makepath(targetfile)
                 convert(f, targetfile)
-                agnostic.save(tags, targetfile)
-                                          
+                if copy_tags: agnostic.save(tags, targetfile)
             else:
                 convert(f, root + self.target)
 

@@ -11,6 +11,8 @@ def load(filename):
     _, extension = os.path.splitext(filename)
     if extension == ".flac":
         return _load_flac(filename)
+    if extension == ".wav":
+        return __load_filename(filename)
     else:
         raise UnsupportedFileType("reading tags from %s files is not supported" %
                                   extension)
@@ -71,6 +73,28 @@ def _load_flac(filename):
         elif k == "albumartistsort":
             tags["AlbumArtistSort"] = v
     return minify(tags)
+
+def __load_filename(filename):
+    tags = {}
+    (directory, fname) = os.path.split(filename)
+    if directory[-1] == os.sep: directory = directory[:-1]
+    (directory, album) = os.path.split(directory)
+    if directory[-1] == os.sep: directory = directory[:-1]
+    (_, tags["Artist"]) = os.path.split(directory)
+    mdata = re.match(r"(?P<track>\d+)( - )?(?P<title>.+)\.[^.]+", fname)
+    if mdata:
+        tags["Title"] = mdata.group("title").strip()
+        tags["Track"] = mdata.group("track").strip()
+    else:
+        tags["Title"] = filename.strip()
+        tags["Track"] = "0"
+    mdata = re.match(r"(\(\d+\)).(.+)", album)
+    if mdata:
+        tags["Album"] = mdata.group(2).strip()
+        tags["Year"] = mdata.group(1).strip()
+    else:
+        tags["Album"] = album.strip()
+    return tags
 
 ########################################
 ## saving
