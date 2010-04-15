@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from optparse import OptionParser, make_option
 
-from muse import Muse
+from muse.main import Muse
 
 USAGE = "usage: %prog [options] [INDIR [OUTDIR]]"
 

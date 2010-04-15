@@ -1,6 +1,5 @@
 import os
 import subprocess
-import sys
 import tempfile
 
 SUPPORTED_TARGETS = [".wav", ".flac", ".mp3"]

@@ -2,8 +2,8 @@ import os
 import re
 import time
 
-import flac
-import id3
+from muse.tag import flac
+from muse.tag import id3
 
 
 class UnsupportedFileType(Exception):

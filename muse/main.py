@@ -2,8 +2,8 @@ import os
 import re
 from fnmatch import fnmatch
 
-from convert import convert
-from tag import agnostic
+from muse.convert import convert
+from muse.tag import agnostic
 
 BAD_CHARS = r"[\/:*?\"<>|]"
 
@@ -38,7 +38,7 @@ class Muse:
                 convert(f, root + self.target)
 
     def walk(self, directory, wanted):
-        for (root, dirs, files) in os.walk(directory):
+        for (root, _, files) in os.walk(directory):
             for f in files:
                 if wanted(f):
                     yield os.path.join(root, f)
