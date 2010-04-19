@@ -2,6 +2,8 @@ import os
 import re
 import time
 
+from struct import unpack
+
 from muse.tag import flac
 from muse.tag import id3
 
@@ -11,14 +13,11 @@ class UnsupportedFileType(Exception):
 
 
 def load(filename):
-    _, extension = os.path.splitext(filename)
-    if extension == ".flac":
+    if _determine_tagtype(filename) == "FLAC":
         return _load_flac(filename)
-    if extension == ".wav":
-        return __load_filename(filename)
     else:
-        raise UnsupportedFileType(
-            "reading tags from %s files is not supported" % extension)
+        print "WARNING: loading tags from filename (normal for wav files)"
+        return _load_filename(filename)
 
 
 def save(tags, filename):
@@ -52,6 +51,16 @@ def minify(tags):
     return tags
 
 
+def _determine_tagtype(filename):
+    with open(filename, "rb") as f:
+        if unpack("3s", f.read(3))[0] == "ID3":
+            return "ID3"
+        f.seek(0, os.SEEK_SET)
+        if unpack("4s", f.read(4))[0] == "fLaC":
+            return "FLAC"
+        return None
+
+
 ########################################
 ## loading
 ########################################
@@ -82,7 +91,7 @@ def _load_flac(filename):
     return minify(tags)
 
 
-def __load_filename(filename):
+def _load_filename(filename):
     tags = {}
     (directory, fname) = os.path.split(filename)
     if directory[-1] == os.sep:
