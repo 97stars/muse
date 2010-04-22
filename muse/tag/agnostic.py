@@ -28,6 +28,8 @@ def save(tags, filename):
         try:
             if extension == ".mp3":
                 _save_id3(tags, filename)
+            elif extension == ".flac":
+                _save_flac(tags, filename)
             else:
                 raise UnsupportedFileType(
                     "saving tags to %s files is not supported" % extension)
@@ -119,6 +121,19 @@ def _load_filename(filename):
 ########################################
 ## saving
 ########################################
+
+
+def _save_flac(tags, filename):
+    flactags = {}
+    for key in tags:
+        if key == "Track":
+            flactags["tracktotal"] = tags[key]
+            flactags["totaltracks"] = tags[key]
+        elif key == "Year":
+            flactags["date"] = tags[key]
+        else:
+            flactags[key.lower()] = tags[key]
+    flac.save(flactags, filename)
 
 
 def _save_id3(tags, filename):
