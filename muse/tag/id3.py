@@ -51,7 +51,7 @@ def _pack_frames(framelist):
             frametext = pack(">B", frame["ENCODING"])
             frametext += pack(">%dsxx%ds" % (len(desc), len(text)),
                               desc, text)
-        elif frame["ID"][0] == "T":
+        elif frame['TYPE'] == "TEXTFRAME":
             text = frame["TEXT"].encode(ENCODINGS[frame["ENCODING"]])
             frametext = pack(">B", frame["ENCODING"])
             frametext += pack(">%ds" % len(text), text)
@@ -90,6 +90,7 @@ def _unpack_id3_size(packedsize):
 def _generic_text(ident, text):
     return {
         "ID": ident,
+        "TYPE": "TEXTFRAME",
         "ENCODING": 1,
         "TEXT": text}
 
@@ -97,6 +98,7 @@ def _generic_text(ident, text):
 def _numeric_text(ident, text):
     return {
         "ID": ident,
+        "TYPE": "TEXTFRAME",
         "ENCODING": 0,
         "TEXT": text}
 
@@ -397,6 +399,10 @@ def WPUB():
 
 def WXXX():
     _unsupported()
+
+
+def XSOP(text):
+    return _generic_text("XSOP", text)
 
 
 def _unsupported():

@@ -156,7 +156,7 @@ def _save_id3(tags, filename):
         elif key == "AlbumArtist":
             frames.append(id3.TPE2(tags[key]))
         elif key == "ArtistSort":
-            raise id3.ID3FrameUnsupported("ArtistSort")
+            frames.append(id3.XSOP(tags[key]))
         elif key == "AlbumArtistSort":
             frames.append(id3.TXXX("ALBUMARTISTSORT", tags[key]))
     id3.save(frames, filename)
