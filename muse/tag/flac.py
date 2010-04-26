@@ -45,7 +45,7 @@ class FLAC(object):
             if not identify(f):
                 raise ValueError("%s is not a flac file" %
                                  filename.encode("ascii", "replace"))
-        filedata, blocks = _load_file(f)
+            filedata, blocks = _load_file(f)
         vlength = len(self.vstring)
         comments = []
         comment_block = {}
@@ -64,15 +64,18 @@ class FLAC(object):
         comment_block['length'] = len(comment_block['data'])
         with open(filename, "wb") as f:
             f.write("fLaC")
+            padding = ""
             for block in blocks:
                 if block['type'] == 0:
                     # streaminfo gets written first
                     f.write(_pack_block(block))
-                elif block['type'] != 4 and block['type'] != 1:
+                elif block['type'] == 1:
+                    padding = _pack_block(block)
+                elif block['type'] != 4:
                     # don't write any existing vorbis comments
-                    # and don't write padding
                     f.write(_pack_block(block))
             f.write(_pack_block(comment_block, True))
+            f.write(padding)
             f.write(filedata)
 
 
