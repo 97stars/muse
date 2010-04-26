@@ -1,75 +1,83 @@
 import os
-
 from struct import pack, unpack
 
 
-def load(filename):
-    with open(filename, "rb") as f:
-        if not _is_flac(f):
-            raise ValueError("%s is not a flac file" %
-                             filename.encode("ascii", "replace"))
-        cont = True
-        while cont:
-            header = unpack(">I", f.read(4))[0]
-            if header >> 31 == 1:
-                cont = False  # last metadata block
-            length = header & 0xFFFFFF
-            if (header >> 24) & 0x7F != 4:
-                # not a comment block
-                f.seek(length, os.SEEK_CUR)
-                continue
-            # ^ BIG ENDIAN
-            # the FLAC format is all big endian, but vorbis comments
-            # are little endian.
-            # v LITTLE ENDIAN
-            v_length = unpack("<I", f.read(4))[0]
-            # v_string = unpack("%ds" % v_length, f.read(v_length))[0]
-            f.seek(v_length, os.SEEK_CUR)
-            num_comments = unpack("<I", f.read(4))[0]
-            for _ in xrange(num_comments):
-                c_length = unpack("<I", f.read(4))[0]
-                c_data = unpack("%ds" % c_length, f.read(c_length))[0]
-                yield _parse_comment(c_data.decode("utf-8"))
+class FLAC(object):
 
+    vstring = u"tneudoerffer's muse".encode("utf-8")
 
-def save(tags, filename):
-    with open(filename, "rb") as f:
-        if not _is_flac(f):
-            raise ValueError("%s is not a flac file" %
-                             filename.encode("ascii", "replace"))
+    def __init__(self):
+        self.comments = {}
+
+    def add(self, desc, text):
+        self.comments[desc] = text
+
+    def load(self, filename):
+        with open(filename, "rb") as f:
+            if not identify(f):
+                raise ValueError("%s is not a flac file" %
+                                 filename.encode("ascii", "replace"))
+            cont = True
+            while cont:
+                header = unpack(">I", f.read(4))[0]
+                if header >> 31 == 1:
+                    cont = False  # last metadata block
+                length = header & 0xFFFFFF
+                if (header >> 24) & 0x7F != 4:
+                    # not a comment block
+                    f.seek(length, os.SEEK_CUR)
+                    continue
+                # ^ BIG ENDIAN
+                # the FLAC format is all big endian, but vorbis comments
+                # are little endian.
+                # v LITTLE ENDIAN
+                v_length = unpack("<I", f.read(4))[0]
+                # v_string = unpack("%ds" % v_length, f.read(v_length))[0]
+                f.seek(v_length, os.SEEK_CUR)
+                num_comments = unpack("<I", f.read(4))[0]
+                for _ in xrange(num_comments):
+                    c_length = unpack("<I", f.read(4))[0]
+                    c_data = unpack("%ds" % c_length, f.read(c_length))[0]
+                    yield _parse_comment(c_data.decode("utf-8"))
+
+    def save(self, filename):
+        with open(filename, "rb") as f:
+            if not identify(f):
+                raise ValueError("%s is not a flac file" %
+                                 filename.encode("ascii", "replace"))
         filedata, blocks = _load_file(f)
-    vendor_string = u"tneudoerffer's muse".encode("utf-8")
-    vendor_length = len(vendor_string)
-    comments = []
-    comment_block = {}
-    for k in tags:
-        text = (k + u"=" + tags[k]).encode("utf-8")
-        comment = pack("<I", len(text))
-        comment += pack("%ds" % len(text), text)
-        comments.append(comment)
-    packed_comments = "".join(comments)
-    comment_block['data'] = pack("<I", vendor_length)
-    comment_block['data'] += pack("%ds" % len(vendor_string), vendor_string)
-    comment_block['data'] += pack("<I", len(comments))
-    comment_block['data'] += pack("%ds" % len(packed_comments),
-                                  packed_comments)
-    comment_block['type'] = 4
-    comment_block['length'] = len(comment_block['data'])
-    with open(filename, "wb") as f:
-        f.write("fLaC")
-        for block in blocks:
-            if block['type'] == 0:
-                # streaminfo gets written first
-                f.write(_pack_block(block))
-            elif block['type'] != 4 and block['type'] != 1:
-                # don't write any existing vorbis comments
-                # and don't write padding
-                f.write(_pack_block(block))
-        f.write(_pack_block(comment_block, True))
-        f.write(filedata)
+        vlength = len(self.vstring)
+        comments = []
+        comment_block = {}
+        for k in self.comments:
+            text = (k + u"=" + self.comments[k]).encode("utf-8")
+            comment = pack("<I", len(text))
+            comment += pack("%ds" % len(text), text)
+            comments.append(comment)
+        packed_comments = "".join(comments)
+        comment_block['data'] = pack("<I", vlength)
+        comment_block['data'] += pack("%ds" % len(self.vstring), self.vstring)
+        comment_block['data'] += pack("<I", len(comments))
+        comment_block['data'] += pack("%ds" % len(packed_comments),
+                                      packed_comments)
+        comment_block['type'] = 4
+        comment_block['length'] = len(comment_block['data'])
+        with open(filename, "wb") as f:
+            f.write("fLaC")
+            for block in blocks:
+                if block['type'] == 0:
+                    # streaminfo gets written first
+                    f.write(_pack_block(block))
+                elif block['type'] != 4 and block['type'] != 1:
+                    # don't write any existing vorbis comments
+                    # and don't write padding
+                    f.write(_pack_block(block))
+            f.write(_pack_block(comment_block, True))
+            f.write(filedata)
 
 
-def _is_flac(fh):
+def identify(fh):
+    fh.seek(0, os.SEEK_SET)
     return unpack("4s", fh.read(4))[0] == "fLaC"
 
 

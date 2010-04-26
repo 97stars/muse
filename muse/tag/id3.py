@@ -1,6 +1,11 @@
 import os
 from struct import pack, unpack
 
+VERSION = (3, 0)  # ID3v2 version
+ENCODINGS = {
+    0: "iso-8859-1",
+    1: "UTF-16"}
+
 
 class ID3Error(Exception):
     pass
@@ -9,20 +14,31 @@ class ID3Error(Exception):
 class ID3FrameUnsupported(Exception):
     pass
 
-VERSION = (3, 0)  # ID3v2 version
-ENCODINGS = {
-    0: "iso-8859-1",
-    1: "UTF-16"}
+
+class ID3(object):
+
+    def __init__(self):
+        self.frames = []
+
+    def add(self, tag):
+        self.frames.append(tag)
+
+    def load(self, filename):
+        pass
+
+    def save(self, filename):
+        filedata = _load_file(filename)
+        framedata = "".join(_pack_frames(self.frames))
+        header = _id3_header(len(framedata))
+        with open(filename, "wb") as f:
+            f.write(header)
+            f.write(framedata)
+            f.write(filedata)
 
 
-def save(framelist, filename):
-    filedata = _load_file(filename)
-    framedata = "".join(_pack_frames(framelist))
-    header = _id3_header(len(framedata))
-    with open(filename, "wb") as f:
-        f.write(header)
-        f.write(framedata)
-        f.write(filedata)
+def identify(fh):
+    fh.seek(0, os.SEEK_SET)
+    return "ID3" == unpack(">3s", fh.read(3))[0]
 
 
 def _load_file(filename):
@@ -30,17 +46,11 @@ def _load_file(filename):
         return ""
     with open(filename, "rb") as f:
         seek = 0
-        if _is_id3(f):
+        if identify(f):
             f.seek(6, os.SEEK_SET)
             seek = _unpack_id3_size(unpack(">BBBB", f.read(4)))
         f.seek(seek, os.SEEK_SET)
         return f.read()
-
-
-def _is_id3(fh):
-    fh.seek(0, os.SEEK_SET)
-    ident = unpack(">3s", fh.read(3))[0]
-    return ident == "ID3"
 
 
 def _pack_frames(framelist):

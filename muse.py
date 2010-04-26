@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from optparse import OptionParser, make_option
 
-from muse.main import Muse
+from muse.main import start
 
 USAGE = "usage: %prog [options] [INDIR [OUTDIR]]"
 
@@ -30,13 +30,12 @@ def main():
     options, args = parseopts()
     i = "*.%s" % options.input  # turn input into a glob
     o = ".%s" % options.output  # turn output into an extension
-    m = Muse(i, o)
     if len(args) == 2:
-        m.go(unicode(args[0]), unicode(args[1]), not options.notags)
+        start(i, o, unicode(args[0]), unicode(args[1]), not options.notags)
     elif len(args) == 0:
-        m.go(u".")
+        start(i, o, ".")
     else:
-        m.go(unicode(args[0]))
+        start(i, o, unicode(args[0]))
 
 if __name__ == '__main__':
     main()
