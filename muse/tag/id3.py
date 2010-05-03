@@ -2,16 +2,9 @@ import os
 from struct import pack, unpack
 
 VERSION = (3, 0)  # ID3v2 version
-ENCODINGS = {
-    0: "iso-8859-1",
-    1: "UTF-16"}
 
 
-class ID3Error(Exception):
-    pass
-
-
-class ID3FrameUnsupported(Exception):
+class Error(Exception):
     pass
 
 
@@ -28,7 +21,7 @@ class ID3(object):
 
     def save(self, filename):
         filedata = _load_file(filename)
-        framedata = "".join(_pack_frames(self.frames))
+        framedata = "".join([x.pack() for x in self.frames])
         header = _id3_header(len(framedata))
         with open(filename, "wb") as f:
             f.write(header)
@@ -51,26 +44,6 @@ def _load_file(filename):
             seek = _unpack_id3_size(unpack(">BBBB", f.read(4)))
         f.seek(seek, os.SEEK_SET)
         return f.read()
-
-
-def _pack_frames(framelist):
-    def packframe(frame):
-        if frame["ID"] == "TXXX":
-            desc = frame["DESC"].encode(ENCODINGS[frame["ENCODING"]])
-            text = frame["TEXT"].encode(ENCODINGS[frame["ENCODING"]])
-            frametext = pack(">B", frame["ENCODING"])
-            frametext += pack(">%dsxx%ds" % (len(desc), len(text)),
-                              desc, text)
-        elif frame['TYPE'] == "TEXTFRAME":
-            text = frame["TEXT"].encode(ENCODINGS[frame["ENCODING"]])
-            frametext = pack(">B", frame["ENCODING"])
-            frametext += pack(">%ds" % len(text), text)
-        framedata = pack(">4s", frame["ID"])
-        framedata += pack(">I", len(frametext))
-        framedata += pack(">H", 0)  # flags
-        framedata += frametext
-        return framedata
-    return [packframe(x) for x in framelist]
 
 
 def _id3_header(size):
@@ -97,323 +70,142 @@ def _unpack_id3_size(packedsize):
     return ret
 
 
-def _generic_text(ident, text):
-    return {
-        "ID": ident,
-        "TYPE": "TEXTFRAME",
-        "ENCODING": 1,
-        "TEXT": text}
-
-
-def _numeric_text(ident, text):
-    return {
-        "ID": ident,
-        "TYPE": "TEXTFRAME",
-        "ENCODING": 0,
-        "TEXT": text}
-
-
-def AENC():
-    _unsupported()
-
-
-def APIC():
-    _unsupported()
-
-
-def COMM():
-    _unsupported()
-
-
-def COMR():
-    _unsupported()
-
-
-def ENCR():
-    _unsupported()
-
-
-def EQUA():
-    _unsupported()
-
-
-def ETCO():
-    _unsupported()
-
-
-def GEOB():
-    _unsupported()
-
-
-def GRID():
-    _unsupported()
-
-
-def IPLS():
-    _unsupported()
-
-
-def LINK():
-    _unsupported()
-
-
-def MCDI():
-    _unsupported()
-
-
-def MLLT():
-    _unsupported()
-
-
-def OWNE():
-    _unsupported()
-
-
-def PRIV():
-    _unsupported()
-
-
-def PCNT():
-    _unsupported()
-
-
-def POPM():
-    _unsupported()
-
-
-def POSS():
-    _unsupported()
-
-
-def RBUF():
-    _unsupported()
-
-
-def RVAD():
-    _unsupported()
-
-
-def RVRB():
-    _unsupported()
-
-
-def SYLT():
-    _unsupported()
-
-
-def SYTC():
-    _unsupported()
-
-
-def TALB(text):
-    return _generic_text("TALB", text)
-
-
-def TBPM():
-    _unsupported()
-
-
-def TCOM():
-    _unsupported()
-
-
-def TCON():
-    _unsupported()
-
-
-def TCOP():
-    _unsupported()
-
-
-def TDAT():
-    _unsupported()
-
-
-def TDLY():
-    _unsupported()
-
-
-def TENC():
-    _unsupported()
-
-
-def TEXT():
-    _unsupported()
-
-
-def TFLT():
-    _unsupported()
-
-
-def TIME():
-    _unsupported()
-
-
-def TIT1(text):
-    return _generic_text("TIT1", text)
-
-
-def TIT2(text):
-    return _generic_text("TIT2", text)
-
-
-def TIT3(text):
-    return _generic_text("TIT3", text)
-
-
-def TKEY():
-    _unsupported()
-
-
-def TLAN():
-    _unsupported()
-
-
-def TLEN():
-    _unsupported()
-
-
-def TMED():
-    _unsupported()
-
-
-def TOAL():
-    _unsupported()
-
-
-def TOFN():
-    _unsupported()
-
-
-def TOLY():
-    _unsupported()
-
-
-def TOPE():
-    _unsupported()
-
-
-def TORY():
-    _unsupported()
-
-
-def TOWN():
-    _unsupported()
-
-
-def TPE1(text):
-    return _generic_text("TPE1", text)
-
-
-def TPE2(text):
-    return _generic_text("TPE2", text)
-
-
-def TPE3():
-    _unsupported()
-
-
-def TPE4():
-    _unsupported()
-
-
-def TPOS():
-    _unsupported()
-
-
-def TPUB():
-    _unsupported()
-
-
-def TRCK(text):
-    return _numeric_text("TRCK", text)
-
-
-def TDRA():
-    _unsupported()
-
-
-def TRSN():
-    _unsupported()
-
-
-def TRSO():
-    _unsupported()
-
-
-def TSIZ():
-    _unsupported()
-
-
-def TSRC():
-    _unsupported()
-
-
-def TSSE():
-    _unsupported()
-
-
-def TYER(text):
-    return _numeric_text("TYER", text)
-
-
-def TXXX(desc, text):
-    frame = _generic_text("TXXX", text)
-    frame["DESC"] = desc
-    return frame
-
-
-def UFID():
-    _unsupported()
-
-
-def USER():
-    _unsupported()
-
-
-def USLT():
-    _unsupported()
-
-
-def WCOM():
-    _unsupported()
-
-
-def WCOP():
-    _unsupported()
-
-
-def WOAF():
-    _unsupported()
-
-
-def WOAR():
-    _unsupported()
-
-
-def WOAS():
-    _unsupported()
-
-
-def WORS():
-    _unsupported()
-
-
-def WPAY():
-    _unsupported()
-
-
-def WPUB():
-    _unsupported()
-
-
-def WXXX():
-    _unsupported()
-
-
-def XSOP(text):
-    return _generic_text("XSOP", text)
-
-
-def _unsupported():
-    raise ID3FrameUnsupported()
+###############################################################################
+## ID3 Frame Classes
+###############################################################################
+
+
+class ID3Frame(object):
+
+    id = "NONE"
+
+    def __init__(self):
+        self.flags = 0
+
+    def pack(self):
+        length = len(self.packed_data)
+        return pack(">4s", self.id) + pack(">I", length) + \
+            pack(">H", self.flags) + self.packed_data
+
+
+class ID3TextFrame(ID3Frame):
+
+    encodings = {
+        0: "iso-8859-1",
+        1: "utf-16",
+        }
+
+    def __init__(self, text):
+        ID3Frame.__init__(self)
+        self.text = text
+        self.encoding = 1
+        self.__packed_text = None
+
+    def __packed_text(self):
+        if not self.__packed_text:
+            etext = self.text.encode(self.encodings[self.encoding])
+            length = len(etext)
+            self.__packed_text = pack(">B%ds" % length, self.encoding, etext)
+        return self.__packed_text
+
+    packed_data = property(__packed_text)
+    packed_text = property(__packed_text)
+
+
+class ID3NumericTextFrame(ID3TextFrame):
+
+    def __init__(self, text):
+        ID3TextFrame.__init__(self, text)
+        self.encoding = 0
+
+class AENC(): pass
+class APIC(): pass
+class COMM(): pass
+class COMR(): pass
+class ENCR(): pass
+class EQUA(): pass
+class ETCO(): pass
+class GEOB(): pass
+class GRID(): pass
+class IPLS(): pass
+class LINK(): pass
+class MCDI(): pass
+class MLLT(): pass
+class OWNE(): pass
+class PRIV(): pass
+class PCNT(): pass
+class POPM(): pass
+class POSS(): pass
+class RBUF(): pass
+class RVAD(): pass
+class RVRB(): pass
+class SYLT(): pass
+class SYTC(): pass
+class TALB(ID3TextFrame): id = "TALB"
+class TBPM(): pass
+class TCOM(): pass
+class TCON(): pass
+class TCOP(): pass
+class TDAT(): pass
+class TDLY(): pass
+class TENC(): pass
+class TEXT(): pass
+class TFLT(): pass
+class TIME(): pass
+class TIT1(ID3TextFrame): id = "TIT1"
+class TIT2(ID3TextFrame): id = "TIT2"
+class TIT3(ID3TextFrame): id = "TIT3"
+class TKEY(): pass
+class TLAN(): pass
+class TLEN(): pass
+class TMED(): pass
+class TOAL(): pass
+class TOFN(): pass
+class TOLY(): pass
+class TOPE(): pass
+class TORY(): pass
+class TOWN(): pass
+class TPE1(ID3TextFrame): id = "TPE1"
+class TPE2(ID3TextFrame): id = "TPE2"
+class TPE3(): pass
+class TPE4(): pass
+class TPOS(): pass
+class TPUB(): pass
+class TRCK(ID3NumericTextFrame): id = "TRCK"
+class TDRA(): pass
+class TRSN(): pass
+class TRSO(): pass
+class TSIZ(): pass
+class TSRC(): pass
+class TSSE(): pass
+class TYER(ID3NumericTextFrame): id = "TYER"
+class TXXX(ID3TextFrame):
+
+    id = "TXXX"
+
+    def __init__(self, desc, text):
+        ID3TextFrame.__init__(self, text)
+        self.desc = desc
+
+    @property
+    def packed_text(self):
+        if not self.__packed_text:
+            etext = self.text.encode(self.encodings(self.encoding))
+            edesc = self.text.encode(self.encodings(self.encoding))
+            self.__packed_text = pack(">%dsxx%ds" % (len(etext),
+                                                     len(edesc)),
+                                      etext, edesc)
+        return self.__packed_text
+class UFID(): pass
+class USER(): pass
+class USLT(): pass
+class WCOM(): pass
+class WCOP(): pass
+class WOAF(): pass
+class WOAR(): pass
+class WOAS(): pass
+class WORS(): pass
+class WPAY(): pass
+class WPUB(): pass
+class WXXX(): pass
+class XSOP(ID3TextFrame): id = "XSOP"
