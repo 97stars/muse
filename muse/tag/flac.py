@@ -64,18 +64,22 @@ class FLAC(object):
         comment_block['length'] = len(comment_block['data'])
         with open(filename, "wb") as f:
             f.write("fLaC")
-            padding = ""
+            padding = None
             for block in blocks:
                 if block['type'] == 0:
                     # streaminfo gets written first
                     f.write(_pack_block(block))
                 elif block['type'] == 1:
+                    print "PADDING"
                     padding = _pack_block(block)
                 elif block['type'] != 4:
                     # don't write any existing vorbis comments
-                    f.write(_pack_block(block))
-            f.write(_pack_block(comment_block, True))
-            f.write(padding)
+                    f.write(_pack_block(block), True)
+            if not padding:
+                f.write(_pack_block(comment_block, True))
+            else:
+                f.write(_pack_block(comment_block, False))
+                f.write(padding)
             f.write(filedata)
 
 
