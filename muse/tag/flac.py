@@ -69,17 +69,18 @@ class FLAC(object):
                 if block['type'] == 0:
                     # streaminfo gets written first
                     f.write(_pack_block(block))
+            for block in blocks:
+                # STREAMINFO has been written
                 elif block['type'] == 1:
-                    print "PADDING"
-                    padding = _pack_block(block)
-                elif block['type'] != 4:
+                    padding = block
+                elif block['type'] != 4 and block['type'] != 0:
                     # don't write any existing vorbis comments
                     f.write(_pack_block(block), True)
             if not padding:
                 f.write(_pack_block(comment_block, True))
             else:
                 f.write(_pack_block(comment_block, False))
-                f.write(padding)
+                f.write(_pack_block(padding, True))
             f.write(filedata)
 
 
