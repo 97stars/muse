@@ -71,7 +71,7 @@ class FLAC(object):
                     f.write(_pack_block(block))
             for block in blocks:
                 # STREAMINFO has been written
-                elif block['type'] == 1:
+                if block['type'] == 1:
                     padding = block
                 elif block['type'] != 4 and block['type'] != 0:
                     # don't write any existing vorbis comments
