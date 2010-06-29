@@ -11,7 +11,9 @@ OPTION_LIST = [
     make_option("-i", "--input", action="store",
                 type="string", dest="input", metavar="GLOB"),
     make_option("-n", "--no-tags", action="store_true",
-                dest="notags", default=False)]
+                dest="notags", default=False),
+    make_option("-t", "--tags-only", action="store_true",
+                dest="tagsonly", default=False)]
 
 
 def parseopts():
@@ -31,7 +33,8 @@ def main():
     i = "*.%s" % options.input  # turn input into a glob
     o = ".%s" % options.output  # turn output into an extension
     if len(args) == 2:
-        start(i, o, unicode(args[0]), unicode(args[1]), not options.notags)
+        start(i, o, unicode(args[0]), unicode(args[1]), not options.notags,
+              options.tagsonly)
     elif len(args) == 0:
         start(i, o, ".")
     else:

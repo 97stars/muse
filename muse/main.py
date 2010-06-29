@@ -7,7 +7,8 @@ from muse.tag.agnostic import AgnosticTags
 BAD_CHARS = r"[\/:*?\"<>|]"
 
 
-def start(match, target, directory, targetdir=None, copy_tags=False):
+def start(match, target, directory, targetdir=None, copy_tags=False,
+          tags_only=False):
     for f in walk(directory, lambda f: fnmatch(f, match)):
         (root, _) = os.path.splitext(f)
         if targetdir:
@@ -16,7 +17,8 @@ def start(match, target, directory, targetdir=None, copy_tags=False):
             targetfile = unicode(os.path.join(targetdir,
                                               atags.name() + target))
             makepath(targetfile)
-            convert(f, targetfile)
+            if not tags_only:
+                convert(f, targetfile)
             if copy_tags:
                 atags.save(targetfile)
         else:
