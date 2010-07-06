@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+import time
 
 SUPPORTED_TARGETS = [".wav", ".flac", ".mp3"]
 SUPPORTED_SOURCES = [".wav", ".flac"]
@@ -23,60 +24,73 @@ def convert(source, target):
     if t_extension not in SUPPORTED_TARGETS:
         raise UnsupportedTarget("%s is an unsupported target" % t_extension)
 
-    inpipe = _decode(source)
+    tempf = _temp()
+    _decode(source, tempf)
     if t_extension == ".wav":
         with open(target, "wb") as out:
-            out.write(inpipe.read())
+            with open(tempf, "rb") as infile:
+                out.write(infile.read())
     elif t_extension == ".flac":
-        _flac(inpipe, target)
+        _flac(tempf, target)
     elif t_extension == ".mp3":
-        _mp3(inpipe, target)
-    inpipe.close()
+        _mp3(tempf, target)
+    os.remove(tempf)
 
 
-def _decode(filename):
+def _decode(filename, target):
     (_, extension) = os.path.splitext(filename)
     print "decoding %s..." % filename.encode("ascii", "replace")
-    f = open(filename, "rb")
     if extension == ".flac":
-        p = subprocess.Popen(["flac", "-d", "--stdout", "-"],
-                             stdin=f,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        return p.stdout
+        with open(os.devnull, "wb") as nul:
+            subprocess.call(["flac", "-d", "-f", "-o", target, filename],
+                            stdin=nul,
+                            stdout=nul,
+                            stderr=nul)
     else:
-        return f
+        with open(target, "wb") as out:
+            with open(filename, "rb") as infile:
+                out.write(infile.read())
 
 
-def _flac(inpipe, filename):
+def _flac(wavfile, filename):
     print "encoding %s..." % filename.encode("ascii", "replace")
+    tempf = _temp()
+    with open(os.devnull, "wb") as nul:
+        subprocess.call(["flac", "--best", "-f", "-o", tempf, wavfile],
+                        stdin=nul,
+                        stdout=nul,
+                        stderr=nul)
+    print "saving %s..." & filename.encode("ascii", "replace")
     with open(filename, "wb") as out:
-        p = subprocess.Popen(["flac", "--best", "--stdout", "-"],
-                             stdin=inpipe,
-                             stdout=out,
-                             stderr=subprocess.PIPE)
-        p.communicate()
-        _sync(out)
-    print "done!"
-
-
-def _mp3(inpipe, filename):
-    print "encoding %s..." % filename.encode("ascii", "replace")
-    (tempfh, tempname) = tempfile.mkstemp()
-    os.close(tempfh)
-    p = subprocess.Popen(["lame", "-V0", "--replaygain-accurate", "-",
-                          tempname],
-                         stdin=inpipe,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    p.communicate()
-    print "saving   %s..." % filename.encode("ascii", "replace")
-    with open(filename, "wb") as out:
-        with open(tempname, "rb") as temp:
+        with open(tempf, "rb") as temp:
             out.write(temp.read())
         _sync(out)
-    os.remove(tempname)
+    os.remove(tempf)
     print "done!"
+
+
+def _mp3(wavfile, filename):
+    print "encoding %s..." % filename.encode("ascii", "replace")
+    tempf = _temp()
+    with open(os.devnull, "wb") as nul:
+        subprocess.call(["lame", "-V0", "--replaygain-accurate", wavfile,
+                         tempf],
+                        stdin=nul,
+                        stdout=nul,
+                        stderr=nul)
+    print "saving   %s..." % filename.encode("ascii", "replace")
+    with open(filename, "wb") as out:
+        with open(tempf, "rb") as temp:
+            out.write(temp.read())
+        _sync(out)
+    os.remove(tempf)
+    print "done!"
+
+
+def _temp():
+    (tempfh, tempname) = tempfile.mkstemp()
+    os.close(tempfh)
+    return tempname
 
 
 def _sync(f):
