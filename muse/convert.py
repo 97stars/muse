@@ -42,10 +42,11 @@ def _decode(filename, target):
     print "decoding %s..." % filename.encode("ascii", "replace")
     if extension == ".flac":
         with open(os.devnull, "wb") as nul:
-            subprocess.call(["flac", "-d", "-f", "-o", target, filename],
-                            stdin=nul,
-                            stdout=nul,
-                            stderr=nul)
+            with open(filename, "rb") as source:
+                subprocess.call(["flac", "-d", "-f", "-o", target, "-"],
+                                stdin=source,
+                                stdout=nul,
+                                stderr=nul)
     else:
         with open(target, "wb") as out:
             with open(filename, "rb") as infile:
