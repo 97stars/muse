@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -34,7 +35,7 @@ def convert(source, target):
         _flac(tempf, target)
     elif t_extension == ".mp3":
         _mp3(tempf, target)
-    os.remove(tempf)
+    _deltemp(tempf)
 
 
 def _decode(filename, target):
@@ -66,7 +67,7 @@ def _flac(wavfile, filename):
         with open(tempf, "rb") as temp:
             out.write(temp.read())
         _sync(out)
-    os.remove(tempf)
+    _deltemp(tempf)
     print "done!"
 
 
@@ -84,7 +85,7 @@ def _mp3(wavfile, filename):
         with open(tempf, "rb") as temp:
             out.write(temp.read())
         _sync(out)
-    os.remove(tempf)
+    _deltemp(tempf)
     print "done!"
 
 
@@ -92,6 +93,15 @@ def _temp():
     (tempfh, tempname) = tempfile.mkstemp()
     os.close(tempfh)
     return tempname
+
+
+def _deltemp(filename):
+    try:
+        os.remove(filename)
+    except OSError as e:
+        print "Error removing %s" % filename
+        print e
+        sys.exit(1)
 
 
 def _sync(f):
