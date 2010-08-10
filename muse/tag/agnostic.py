@@ -140,6 +140,7 @@ class AgnosticTags(object):
                 id3tags.add(id3.TYER(self.tags[key]))
             elif key == "AlbumArtist":
                 id3tags.add(id3.TPE2(self.tags[key]))
+                id3tags.add(id3.TXXX("ALBUM ARTIST", self.tags[key]))
             elif key == "ArtistSort":
                 id3tags.add(id3.XSOP(self.tags[key]))
             elif key == "AlbumArtistSort":
