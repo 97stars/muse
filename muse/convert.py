@@ -44,7 +44,7 @@ def _decode(filename, target):
     if extension == ".flac":
         with open(os.devnull, "wb") as nul:
             with open(filename, "rb") as source:
-                subprocess.call(["flac", "-d", "-f", "-o", target, "-"],
+                subprocess.call(["flac", "-d", "-F", "-f", "-o", target, "-"],
                                 stdin=source,
                                 stdout=nul,
                                 stderr=nul)
@@ -62,7 +62,7 @@ def _flac(wavfile, filename):
                         stdin=nul,
                         stdout=nul,
                         stderr=nul)
-    print "saving %s..." & filename.encode("ascii", "replace")
+    print "saving %s..." % filename.encode("ascii", "replace")
     with open(filename, "wb") as out:
         with open(tempf, "rb") as temp:
             out.write(temp.read())

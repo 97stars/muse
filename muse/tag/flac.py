@@ -75,7 +75,7 @@ class FLAC(object):
                     padding = block
                 elif block['type'] != 4 and block['type'] != 0:
                     # don't write any existing vorbis comments
-                    f.write(_pack_block(block), True)
+                    f.write(_pack_block(block))
             if not padding:
                 f.write(_pack_block(comment_block, True))
             else:
